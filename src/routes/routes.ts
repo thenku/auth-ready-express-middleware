@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 import { Router, Request, Response, NextFunction } from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
@@ -37,7 +39,7 @@ const router = Router();
 //     unset: 'destroy'
 // }));
 
-export function setMyAuth(app: Router, showTestPages = false, sessionRoutes: "all" | "privateOnly" = "privateOnly") {
+export function setMyAuth(app: Router, showTestPages = false, sessionRoutes: "all" | "privateOnly" = "privateOnly", recaptcha: Partial<{siteKey: string, secretKey: string}> = {}) {
     const maxAge = 1000 * 3 * 5; //
     const sessionStore = new CustomSessionStore(maxAge);
     
@@ -72,7 +74,14 @@ export function setMyAuth(app: Router, showTestPages = false, sessionRoutes: "al
     app.use("/private/", router);
 
     if(showTestPages){
-        // console.log("Public folder of this module: ", publicFolder);
-        app.get("/", express.static(publicFolder));
+        // app.set('view engine', 'handlebars');
+        //         app.set('views', path.join(__dirname, '../../views'));
+
+        // // Define a route to render a page
+        // app.get('/render', (req: Request, res: Response) => {
+        //     res.render('index', { title: 'My Page', message: 'Hello, world!' });
+        // });
+
+        app.use("/", express.static(publicFolder));
     }
 }

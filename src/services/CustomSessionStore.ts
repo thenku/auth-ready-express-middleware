@@ -1,4 +1,3 @@
-import { SessionData, Store } from 'express-session';
 import { generateMySecret } from '../util/KeyGen';
 import {Request, Response, NextFunction} from 'express';
 

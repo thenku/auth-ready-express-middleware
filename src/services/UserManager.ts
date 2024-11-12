@@ -15,8 +15,8 @@ export type IUser = {
 }
 const mySemaphore = new Semaphore(); //singleton here outside the class
 
-export class UserModel {
-    private userTable:Record<string, IUser> = {};
+class UserManagerClass {
+    userTable:Record<string, IUser> = {};
     private emailMappings: Record<string,string> = {};
     private devices: Record<string, string[]> = {};
 
@@ -42,7 +42,7 @@ export class UserModel {
         mySemaphore.release();
     }
    
-    public async createUser(email:string, name:string): Promise<void> {
+    public async createUser(email:string, name:string) {
         await mySemaphore.acquire();
         this.maxId++;
         const id = this.maxId.toString();
@@ -63,6 +63,7 @@ export class UserModel {
         this.emailMappings[email] = id;
         this.updateUserKeys(id);
         mySemaphore.release();
+        
     }
 
     public async getUserById(id: string): Promise<IUser | undefined> {
@@ -114,3 +115,6 @@ export class UserModel {
         }
     }
 }
+
+const UserManager = new UserManagerClass();
+export default UserManager;

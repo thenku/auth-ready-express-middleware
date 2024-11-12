@@ -1,6 +1,6 @@
 import {Response} from "express";
 
-export default function  mkErrorResponse(myType:"forbidden" | "not_found" | "login_redirect" | "too_many_requests" | "payload_too_large", res?:Response, redirectIfText = ""){
+export default function  mkErrorResponse(myType:"unauthorized" | "forbidden" | "not_found" | "login_redirect" | "too_many_requests" | "payload_too_large", res?:Response, redirectIfText = ""){
     let data = "";
     let statusCode = 200;
     
@@ -10,6 +10,15 @@ export default function  mkErrorResponse(myType:"forbidden" | "not_found" | "log
             meta: {
                 success:false, 
                 message:"forbidden"
+            }
+        });
+    }
+    else if(myType == "unauthorized"){
+        statusCode = 401;
+        data = JSON.stringify({
+            meta: {
+                success:false, 
+                message:"Unauthorized access"
             }
         });
     }else if(myType == "not_found"){

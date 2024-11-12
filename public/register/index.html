@@ -75,12 +75,18 @@
 <body>
     <div class="container">
         <h1>Register</h1>
-        <form action="/api/auth/register" method="POST">
+        <form action="/private/user/register" method="POST">
+            <label for="name">Name:</label>
+            <input type="name" id="name" name="name" required>
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>
+            <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+            <button class="g-recaptcha" 
+        data-sitekey="6LcT23wqAAAAAHD9YyHrmigbhfEhRYXZjD4XVmH3" 
+        data-callback='onSubmit' 
+        data-action='submit'>Submit</button>
             <label for="recaptcha">reCAPTCHA:</label>
-            <div class="g-recaptcha" data-sitekey="your-site-key"></div>
-            <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+            <div class="g-recaptcha" data-sitekey=""></div> -->
             <button type="submit">Register</button>
         </form>
         <div class="accordion">
