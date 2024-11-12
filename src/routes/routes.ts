@@ -57,12 +57,13 @@ export function setMyAuth(app: Router, showTestPages = false, sessionRoutes: "al
         }
 
         if(req.sessionID){
-            console.log("Session ID: ", req.sessionID);
         }else{
-            console.log("NO SESSION ID: ", req.sessionID);
+            // console.log("NO SESSION ID: ", req.sessionID);
             
         }
-        console.log("SessionsStore: ", JSON.stringify(sessionStore).length);
+        // console.log("Session ID: ", req.sessionID);
+
+        // console.log("SessionsStore: ", JSON.stringify(sessionStore).length);
 
         setMyAuthRoutes(router);
         next();

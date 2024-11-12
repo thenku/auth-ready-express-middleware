@@ -9,12 +9,17 @@ export type iSessionData =  {
 
 class CustomSessionStore {
     private sessions: { [sid: string]: iSessionData | undefined } = {};
-    private maxAge: number = 1000 * 3; // 1 day in milliseconds
+    private maxAge: number = 0;
+    private minAge: number = 1000 * 60 * 2; // 2 minutes in milliseconds
     private static myInstance: CustomSessionStore | null = null;
     
-    constructor(maxAge: number = 1000 * 3) {
+    constructor(maxAge: number = 1000 * 60 * 3) {
         if (!CustomSessionStore.myInstance) {
-            this.maxAge = maxAge;
+            if(maxAge < this.minAge){
+                this.maxAge = this.minAge;
+            }else{
+                this.maxAge = maxAge;
+            }
             CustomSessionStore.myInstance = this;
             this.initCleanup();
         }
@@ -23,16 +28,18 @@ class CustomSessionStore {
     private initCleanup() {
         console.log('Starting session cleanup interval');
         setInterval(() => {
-            // const time3MinsAgo = new Date(Date.now() - this.maxAge).toISOString(); // get the time 3 minutes ago
             const agoMS = Date.now() - this.maxAge;
-            for (const sid in this.sessions) {
+            const keys = Object.keys(this.sessions);
+            let count = keys.length;
+            while (count--) {
+                const sid = keys[count];
                 const session = this.sessions[sid] as iSessionData;
                 if(session.exp < agoMS){
-                    console.log('removing session: ', sid);
                     this.destroy(sid);
+                    console.log('removed sid: ', sid);
                 }
             }
-        }, this.maxAge);
+        }, this.minAge);
     }
     generateSessionId(){
         return generateMySecret(32, "api", 16)+crypto.randomUUID();
@@ -73,7 +80,6 @@ class CustomSessionStore {
             }
         }
     }
-
     // Implement other methods as needed (e.g., touch, all, clear, length)
 }
 

@@ -11,6 +11,26 @@ This document outlines the user stories for implementing authentication middlewa
 
 ## User Stories
 
+
+
+### 7. Automatic Session ID Updates
+- **As a** logged-in user
+- **I want** my session ID to be updated automatically
+- **So that** my session remains secure
+- **Estimated Time:** 4 hours
+
+### 8. IP Verification
+- **As a** system administrator
+- **I want** to verify user IP addresses during login
+- **So that** I can enhance security by detecting suspicious logins
+- **Estimated Time:** 5 hours
+
+### 9. Rate Limiting
+- **As a** system administrator
+- **I want** to implement rate limiting
+- **So that** I can prevent abuse and ensure fair usage of the system
+- **Estimated Time:** 5 hours
+
 ### 1. User Registration
 - **As a** new user
 - **I want** to register an account
@@ -47,24 +67,6 @@ This document outlines the user stories for implementing authentication middlewa
 - **So that** I can have a strong password without creating one myself
 - **Estimated Time:** 3 hours
 
-### 7. Automatic Session ID Updates
-- **As a** logged-in user
-- **I want** my session ID to be updated automatically
-- **So that** my session remains secure
-- **Estimated Time:** 4 hours
-
-### 8. IP Verification
-- **As a** system administrator
-- **I want** to verify user IP addresses during login
-- **So that** I can enhance security by detecting suspicious logins
-- **Estimated Time:** 5 hours
-
-### 9. Rate Limiting
-- **As a** system administrator
-- **I want** to implement rate limiting
-- **So that** I can prevent abuse and ensure fair usage of the system
-- **Estimated Time:** 5 hours
-
 ### 10. CAPTCHA in Registration
 - **As a** new user
 - **I want** to complete a Google RECAPTCHA during registration
@@ -87,6 +89,12 @@ This document outlines the user stories for implementing authentication middlewa
 - **As a** new user
 - **I want** the application to include default HTML pages for login, registration, and password reset
 - **So that** I can have a user-friendly interface for these actions
+- **Estimated Time:** 5 hours
+
+### 13. Behavior Logging
+- **As a** system administrator
+- **I want** to receive messages when suspicious activity occurs
+- **So that** I can capture hackers before something goes wrong
 - **Estimated Time:** 5 hours
 
 
