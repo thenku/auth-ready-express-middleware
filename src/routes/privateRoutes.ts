@@ -6,7 +6,7 @@ import mkErrorResponse from '../middlewares/mkResponse';
 import Validator from '../util/FormInputValidator';
 import UserManager, { IUser } from '../services/UserManager';
 import FormInputModifier from '../util/FormInputModifier';
-import BruteForceStrategies from '../util/BruteForceStrategies';
+import BruteForceStrategies, { BruteForceLocksCategory } from '../util/BruteForceStrategies';
 
 const sessionStore = new CustomSessionStore(); //singleton
 
@@ -23,88 +23,26 @@ const checkAuth = (req: Request, res: Response) => {
 
 const registrationLockTimeout = 5000;
 const loginLockTimeout = 3000;
+const confirmLockTimeout = 3000;
 
 export function setMyAuthRoutes(router: Router) {
     router.use(express.json({limit:10240})); // limit the body size to 10kb
     router.use(express.urlencoded({limit:10240})); // limit the body size to 10kb
 
-    setThrottle(router);//generat ip throttle
+    //pure ip throttles are going to cause problems with multiple users. Improve accuracy by using a combination of ip and email and session id and user id and api key and device id and mac address and user agent and other headers.
+    setThrottle(router);//generate ip throttle
 
-    router.post('/user/login', async (req, res) => {
-        const cleanBody = FormInputModifier.cleanBody(req.body);
-        const {email, password} = cleanBody;
-
-        if(BruteForceStrategies.isLoginLocked(email)){
-            console.log("Login locked");
-            mkErrorResponse("too_many_requests", res);
-            return;
-        }else{
-            await BruteForceStrategies.lockLoginOut(email, loginLockTimeout);
-        }
-
-        if(checkAuth(req, res)){
-            res.redirect(307, '/private/user');
-        }
-        else if(!email || !password){
-            mkErrorResponse("unauthorized", res);
-        }else{
-            const user = UserManager.getUserByEmail(email);
-            if(user){
-                const {id, active, confirmed} = user;
-                if(active && confirmed && await UserManager.verifyPassword(id, password)){
-                    console.log("Login: ", cleanBody);
-                    const sid = sessionStore.generateSessionId();
-                    req.session = sessionStore.set(sid, {uid:id}) as any;
-                    sessionStore.updateCookie(req, res, sid);
-                    console.log("Session ID: ", sid, req.sessionID);
-                    res.status(200).json({message: "Login successful"});
-                }else{
-                    mkErrorResponse("unauthorized", res);
-                }
-            }else{
-                mkErrorResponse("unauthorized", res);
-            }
-        }
-    });
-
-    router.post('/user/register', async (req:Request, res:Response) => {
-        // curl -X POST http://localhost:3000/private/user/register -H "Content-Type: application/json" -d '{ "key": "value" }'
-        const cleanBody = FormInputModifier.cleanBody(req.body);
-        const {email, name, postal} = cleanBody;
-        
-        //what can we use instead of recaptcha? An authenticator app
-        //authenticator makes more sense after login.
-        if(BruteForceStrategies.isRegistrationLocked(email)){
-            console.log("Registration locked");
-            mkErrorResponse("too_many_requests", res);
-            return;
-        }else{
-            await BruteForceStrategies.lockRegistrationOut(email, registrationLockTimeout);
-        }
-        console.log("Register: ", req.body);
-        
-
-        if(!email || !name){
-            mkErrorResponse("unauthorized", res);
-        }else{
-            if(Validator.isEmailBasic(email)){
-                let user = UserManager.getUserByEmail(email);
-                if(user){
-                    mkErrorResponse("unauthorized", res);
-                }else{
-                    user = await UserManager.createUser(email, name) as IUser;
-                    const {id} = user;
-                    await UserManager.confirmUser(id);
-                    await UserManager.activateUser(id);
-                    await UserManager.saveTable();
-
-                    console.log({user, pw:UserManager.tempPW[id]});
-                    res.status(200).json({message: "User created"});
-                }
-            }
-        }
-    });
-
+    // set brute force wait time
+    // router.use(async (req, res, next) => {
+    //     const {ip} = req;
+    //     const isLocked = await BruteForceStrategies.isLockedOutElseWait(ip, BruteForceLocksCategory.registration, registrationLockTimeout);
+    //     if(isLocked){
+    //         console.log("Registration locked");
+    //         mkErrorResponse("too_many_requests", res);
+    //         return;
+    //     }
+    //     next();
+    // });
     router.get('/user', async (req, res, next) => {
         const {query, session} = req;
         
@@ -122,5 +60,117 @@ export function setMyAuthRoutes(router: Router) {
         }
     });
     router.post('/user', (req, res, next) => {});
+
+    router.post('/user/login', async (req, res) => {
+        const cleanBody = FormInputModifier.cleanBody(req.body);
+        const {email, password} = cleanBody;
+
+        //check isLockedOutElseWait
+        const isLocked = await BruteForceStrategies.isLockedOutElseWait(email, BruteForceLocksCategory.login, loginLockTimeout);
+        if(isLocked){
+            console.log("Login locked");
+            mkErrorResponse("too_many_requests", res);
+            return;
+        }
+
+        if(checkAuth(req, res)){
+            res.redirect(307, '/private/user');
+        }
+        else if(!email || !password){
+            mkErrorResponse("unauthorized", res);
+        }else{
+            const user = UserManager.getUserByEmail(email);
+            if(user){
+                if(await UserManager.verifyLogin(email, password)){
+                    const {id} = user;
+                    const sid = sessionStore.generateSessionId();
+                    req.session = sessionStore.set(sid, {uid:id}) as any;
+                    sessionStore.updateCookie(req, res, sid);
+                    console.log("Login: ", cleanBody);
+                    res.status(200).json({message: "Login successful"});
+                }else{
+                    mkErrorResponse("unauthorized", res);
+                }
+            }else{
+                mkErrorResponse("unauthorized", res);
+            }
+        }
+    });
+    
+    router.get('/user/confirm', async (req:Request, res:Response) => {
+        const {query} = req;
+        const email = query.email+"";
+        const confirm = query.confirm+"";
+
+        //check isLockedOutElseWait
+        const isLocked = await BruteForceStrategies.isLockedOutElseWait(email, BruteForceLocksCategory.confirm, confirmLockTimeout);
+        if(isLocked){
+            console.log("Confirm locked");
+            mkErrorResponse("too_many_requests", res);
+            return;
+        }
+
+        if(!email || !confirm){
+            mkErrorResponse("unauthorized", res);
+        }else{
+            const user = UserManager.getUserByEmail(email);
+            if(user){
+                const {id, confirmed} = user;
+                if(!confirmed){ //make sure this is a user confirmation
+                    const isConfirmed = UserManager.verifyConfirmKey(id, confirm);
+                    if(isConfirmed){
+                        UserManager.setUserConfirmed(id);
+                        await UserManager.saveTable();
+                        res.status(200).json({message: "User confirmed"});
+                    }
+                }
+                else{
+                    mkErrorResponse("unauthorized", res);
+                }
+            }else{
+                mkErrorResponse("unauthorized", res);
+            }
+        }
+    });
+
+    router.post('/user/register', async (req:Request, res:Response) => {
+        const cleanBody = FormInputModifier.cleanBody(req.body);
+        const {email, name, postal} = cleanBody;
+        
+        //check isLockedOutElseWait
+        const isLocked = await BruteForceStrategies.isLockedOutElseWait(email, BruteForceLocksCategory.registration, registrationLockTimeout);
+        if(isLocked){
+            console.log("Registration locked");
+            mkErrorResponse("too_many_requests", res);
+            return;
+        }
+        console.log("Register: ", cleanBody);
+
+        if(!email || !name){
+            mkErrorResponse("unauthorized", res);
+        }else{
+            if(Validator.isEmailBasic(email)){
+                let user = UserManager.getUserByEmail(email);
+                if(user){
+                    mkErrorResponse("unauthorized", res);
+                }else{
+                    user = await UserManager.createUser(email, name) as IUser;
+                    const {id} = user;
+                    await UserManager.saveTable();
+                    res.status(200).json({message: "User created"});
+                }
+            }
+        }
+    });
+    router.post('/user/reset', async (req:Request, res:Response) => {
+        const cleanBody = FormInputModifier.cleanBody(req.body);
+        // 
+    });
+    router.get('/user/logout', async (req:Request, res:Response) => {
+        //destroy the current session
+        sessionStore.destroy(req.sessionID);
+    });
+
+    
 
 }

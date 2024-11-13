@@ -57,7 +57,7 @@ class CustomSessionStore {
         return this.sessions[sid];
     }
 
-    private destroy(sid: string): void {
+    destroy(sid: string): void {
         delete this.sessions[sid];
     }
     updateCookie = (req:Request, res:Response, sid:string) => {

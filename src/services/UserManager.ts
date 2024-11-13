@@ -21,7 +21,8 @@ class UserManagerClass {
     userTable:Record<string, IUser> = {};
     private emailMappings: Record<string,string> = {};
     private devices: Record<string, string[]> = {};
-    tempPW: Record<string, string> = {};
+    private tempPW: Record<string, string> = {};
+    private tempConfirm: Record<string, string> = {};
     private tablePath = path.resolve("private/table.json");
 
     private maxId = 1; //starts with 1 because 0 is falsey
@@ -87,11 +88,11 @@ class UserManagerClass {
         };
         this.userTable[id] = user;
         this.emailMappings[email] = id;
-        await this.updateUserKeys(id);
+        await this.createPassword(id);
+        this.createAPIKey(id);
         mySemaphore.release();
         return user;
     }
-
     getUserById(id: string){
         return this.userTable[id];
     }
@@ -108,28 +109,60 @@ class UserManagerClass {
             this.emailMappings[email] = id;
         }
     }
-    //confirm user
-    async confirmUser(id: string): Promise<void> {
+    createConfirmKey(id: string){//can be created at the time of notification
+        const confirm = KeyGen.generateMySecret(16, "api", 8);
+        this.tempConfirm[id] = confirm;
+        return confirm;
+    }
+    verifyConfirmKey(id: string, confirm: string){//delete the key if it matches
+        const confirm2 = this.tempConfirm[id];
+        if(confirm2 === confirm){
+            delete this.tempConfirm[id];
+            return true;
+        }
+        return false;
+    }
+    setUserConfirmed(id: string){
         const row = this.userTable[id];
         if(row){
             row.confirmed = Math.floor(Date.now()/1000);
         }
     }
-    //update user keys
-    public async updateUserKeys(id: string) {
+    async createPassword(id: string){
+        const row = this.userTable[id];
+        if(!row){
+            return;
+        }
+        const pw = KeyGen.generateMySecret(12, "pw", 8);
+        this.tempPW[id] = pw;
+        const hash = await KeyGen.hashPassword(pw);
+        row.pw = hash;
+        return pw;
+    }
+    getTempPWOnce(id: string){
+        const pw = this.tempPW[id];
+        if(pw){
+            delete this.tempPW[id];
+        }
+        return pw;
+    }
+    createAPIKey(id: string) {
         const row = this.userTable[id];
         if(row){
             row.apiKey = KeyGen.generateMySecret(64, "api", 12);
-            const pw = KeyGen.generateMySecret(12, "pw", 8);
-            this.tempPW[id] = pw;
-            const hash = await KeyGen.hashPassword(pw);
-            row.pw = hash;
         }
     }
     async verifyPassword(id: string, password: string): Promise<boolean> {
         const user = this.userTable[id];
         if(user){
             return await KeyGen.validatePassword(password, user.pw);
+        }
+        return false;
+    }
+    async verifyLogin(email: string, password: string): Promise<boolean> {
+        const user = this.getUserByEmail(email);
+        if(user){
+            return (user.active && user.confirmed && await KeyGen.validatePassword(password, user.pw)) ? true : false;
         }
         return false;
     }

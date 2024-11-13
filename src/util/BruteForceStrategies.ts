@@ -2,10 +2,19 @@ import { Response } from "express";
 import mkErrorResponse from "../middlewares/mkResponse";
 
 
+export enum BruteForceLocksCategory {
+    registration, login, confirm,
+
+}
+const nrAllowedFailedLogins = 3;
+const failedLoginTimeout = 10000;
+
 class BruteForceStrategiesClass {
     // return false until time is expired
     private registration:Record<string, number> = {}; //email:time
-    private logins:Record<string, number> = {}; //email:time
+    private logins:Record<string, number> = {};
+    private confirms:Record<string, number> = {};
+    private failedLogins:Record<string, {start:number, nrFails:number}> = {};
 
     private async waitForMs(ms:number){
         await new Promise((resolve, reject) => {
@@ -13,33 +22,53 @@ class BruteForceStrategiesClass {
             setTimeout(resolve, ms);
         });
     }
-    isRegistrationLocked(email: string): boolean {
+    
+    constructor(){
+        setInterval(() => {
+            this.cleanFailedLogins(failedLoginTimeout);
+        }, 1000 * 60 * 10); //every 10 minutes
+    }
+    private async cleanFailedLogins(secs:number){
         const now = Date.now();
-        const registration = this.registration[email];
-        if(registration){
-            return now < registration;
+        for (const email in this.failedLogins) {
+            const failData = this.failedLogins[email];
+            if(now - failData.start > secs){
+                delete this.failedLogins[email];
+            }
         }
-        return false;
     }
-    async lockRegistrationOut(email: string, ms:number) {
-        this.registration[email] = Date.now() + ms;
-        await this.waitForMs(ms);
-        delete this.registration[email];
-    }
-    isLoginLocked(email: string): boolean {
-        const now = Date.now();
-        const login = this.logins[email];
-        if(login){
-            return now < login;
+    addFailedLogin(email: string){
+        const failData = this.failedLogins[email];
+        if(failData){
+            if(Date.now() - failData.start > failedLoginTimeout){
+                failData.start = Date.now();
+                failData.nrFails = 1;
+            }else{
+                failData.nrFails++;
+            }
+            if(failData.nrFails > nrAllowedFailedLogins){
+                return false;
+            }
+        }else{
+            this.failedLogins[email] = {start:Date.now(), nrFails:1};
         }
-        return false;
-    }
-    async lockLoginOut(email: string, ms:number) {
-        this.logins[email] = Date.now() + ms;
-        await this.waitForMs(ms);
-        delete this.logins[email];
+        return true;
     }
 
+    async isLockedOutElseWait(key: string, category: BruteForceLocksCategory, ms = 5000): Promise<boolean> {
+        const now = Date.now();
+        const table = category === BruteForceLocksCategory.registration ? this.registration : (category == BruteForceLocksCategory.login) ? this.logins : this.confirms;
+        const lock = table[key];
+        const isLocked = lock ? now < lock : false;
+        if(isLocked){
+            return true;
+        }else{
+            table[key] = Date.now() + ms;
+            await this.waitForMs(ms);
+            delete table[key];
+            return false;
+        }
+    }
 }
 const BruteForceStrategies = new BruteForceStrategiesClass();
 export default BruteForceStrategies;
