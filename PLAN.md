@@ -67,7 +67,7 @@ This document outlines the user stories for implementing authentication middlewa
 - **So that** I can have a strong password without creating one myself
 - **Estimated Time:** 3 hours
 
-### 10. CAPTCHA in Registration
+### 10. Instead of CAPTCHA use email verification in Registration
 - **As a** new user
 - **I want** to complete a Google RECAPTCHA during registration
 - **So that** the system can verify that I am not a bot

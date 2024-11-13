@@ -1,5 +1,5 @@
-import { generateMySecret } from '../util/KeyGen';
 import {Request, Response, NextFunction} from 'express';
+import KeyGen from '../util/KeyGen';
 
 export type iSessionData =  {
     uid?:number;
@@ -41,7 +41,7 @@ class CustomSessionStore {
         }, this.minAge);
     }
     generateSessionId(){
-        return generateMySecret(32, "api", 16)+crypto.randomUUID();
+        return KeyGen.generateMySecret(32, "api", 16)+crypto.randomUUID();
     }
 
     get(sid: string) {

@@ -5,9 +5,8 @@ import express from 'express';
 import { setMyAuth } from './routes/routes';
 
 const app = express();
-const recaptcha = {siteKey: process.env.RECAPTCHA_SITE_KEY, secretKey: process.env.RECAPTCHA_SECRET_KEY};
 
-setMyAuth(app, true, "privateOnly", recaptcha);
+setMyAuth(app, true, "privateOnly");
 
 // Start the server
 const PORT = process.env.PORT || 3000;

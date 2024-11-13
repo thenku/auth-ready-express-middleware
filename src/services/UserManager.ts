@@ -1,5 +1,5 @@
+import KeyGen from '../util/KeyGen';
 import Semaphore from '../util/Semaphore';
-import { generateApiKey, generateMySecret, hashPassword, md5Hash } from '../util/KeyGen';
 
 export type IUser = {
     id: string;
@@ -61,20 +61,19 @@ class UserManagerClass {
         };
         this.userTable[id] = user;
         this.emailMappings[email] = id;
-        this.updateUserKeys(id);
+        await this.updateUserKeys(id);
         mySemaphore.release();
-        
     }
 
-    public async getUserById(id: string): Promise<IUser | undefined> {
+    getUserById(id: string){
         return this.userTable[id];
     }
 
-    public async getUserByEmail(email: string): Promise<IUser | null> {
+    getUserByEmail(email: string){
         const id = this.emailMappings[email];
         return id ? this.userTable[id] : null;
     }
-    public async updateUserEmail(id:string, email:string): Promise<void> {
+    async updateUserEmail(id:string, email:string): Promise<void> {
         const user = this.userTable[id];
         if(user){
             delete this.emailMappings[user.email];
@@ -83,18 +82,27 @@ class UserManagerClass {
         }
     }
     //confirm user
-    public async confirmUser(id: string): Promise<void> {
+    async confirmUser(id: string): Promise<void> {
         if(this.userTable[id]){
             this.userTable[id].confirmed = Math.floor(Date.now()/1000);
         }
     }
     //update user keys
     public async updateUserKeys(id: string) {
-        if(this.userTable[id]){
-            this.userTable[id].apiKey = generateApiKey();
-            const pw = generateMySecret(12, "pw", 8);
-            this.userTable[id].pw = md5Hash(pw);
+        const row = this.userTable[id];
+        if(row){
+            row.apiKey = KeyGen.generateMySecret(64, "api", 12);
+            const pw = KeyGen.generateMySecret(12, "pw", 8);
+            const hash = await KeyGen.hashPassword(pw);
+            row.pw = hash;
         }
+    }
+    async verifyPassword(id: string, password: string): Promise<boolean> {
+        const user = this.userTable[id];
+        if(user){
+            return await KeyGen.validatePassword(password, user.pw);
+        }
+        return false;
     }
 
     public async deleteUser(id: string): Promise<void> {

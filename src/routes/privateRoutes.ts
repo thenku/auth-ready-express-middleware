@@ -3,8 +3,9 @@ import express, { Router } from "express";
 import CustomSessionStore, { iSessionData } from "../services/CustomSessionStore";
 import setThrottle from '../middlewares/setThrottle';
 import mkErrorResponse from '../middlewares/mkResponse';
-import Validator from '../util/Validator';
+import Validator from '../util/FormInputValidator';
 import UserManager from '../services/UserManager';
+import FormInputModifier from '../util/FormInputModifier';
 
 const sessionStore = new CustomSessionStore(); //singleton
 
@@ -25,19 +26,37 @@ export function setMyAuthRoutes(router: Router) {
     router.use(express.urlencoded({limit:10240})); // limit the body size to 10kb
 
     setThrottle(router);
-    router.get('/user/login', (req, res) => {
-        // console.log("Login: ", req.body);
-        // const sid = sessionStore.generateSessionId();
-        // req.session = sessionStore.set(sid, {}) as any;
-        // sessionStore.updateCookie(req, res, sid);
-        // res.status(200).json({message: "Login successful"});
+    router.get('/user/login', async (req, res) => {
+        const cleanBody = FormInputModifier.cleanBody(req.body);
+        const {email, password} = cleanBody;
+
+        if(!email || !password){
+            mkErrorResponse("unauthorized", res);
+        }else{
+            const user = UserManager.getUserByEmail(email);
+            if(user){
+                const {id} = user;
+                if(await UserManager.verifyPassword(user.id, password)){
+                    console.log("Login: ", cleanBody);
+                    const sid = sessionStore.generateSessionId();
+                    req.session = sessionStore.set(sid, {}) as any;
+                    sessionStore.updateCookie(req, res, sid);
+                    console.log("Session ID: ", sid, req.sessionID);
+                    res.status(200).json({message: "Login successful"});
+                }else{
+                    mkErrorResponse("unauthorized", res);
+                }
+            }
+        }
     });
 
     router.post('/user/register', async (req:Request, res:Response, next) => {
         // curl -X POST http://localhost:3000/private/user/register -H "Content-Type: application/json" -d '{ "key": "value" }'
         console.log("Register: ", req.body);
-        const {email, recaptcha, name} = req.body;
-        //what can we use instead of recaptcha?
+        const cleanBody = FormInputModifier.cleanBody(req.body);
+        const {email, name, postal} = cleanBody;
+        
+        //what can we use instead of recaptcha? An authenticator app
 
         if(!email || !name){
             res.status(400).json({message: "Invalid request"});
@@ -46,17 +65,17 @@ export function setMyAuthRoutes(router: Router) {
                 // console.log("Valid email");
                 // console.log("Valid recaptcha");
                 // console.log("Valid request");
-                let user = await UserManager.getUserByEmail(email);
+                let user = UserManager.getUserByEmail(email);
                 if(user){
                     res.status(400).json({message: "User already exists"});
                 }else{
                     await UserManager.createUser(email, name);
-                    user = await UserManager.getUserByEmail(email);
+                    user = UserManager.getUserByEmail(email);
+                    console.log({user});
                     res.status(200).json({message: "User created"});
                 }
             }
         }
-        // res.json(req.body);
     });
 
     router.get('/user', async (req, res, next) => {

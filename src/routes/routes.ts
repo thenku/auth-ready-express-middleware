@@ -39,8 +39,8 @@ const router = Router();
 //     unset: 'destroy'
 // }));
 
-export function setMyAuth(app: Router, showTestPages = false, sessionRoutes: "all" | "privateOnly" = "privateOnly", recaptcha: Partial<{siteKey: string, secretKey: string}> = {}) {
-    const maxAge = 1000 * 3 * 5; //
+export function setMyAuth(app: Router, showTestPages = false, sessionRoutes: "all" | "privateOnly" = "privateOnly") {
+    const maxAge = 1000 * 5; // 5 seconds
     const sessionStore = new CustomSessionStore(maxAge);
     
     let mustRefresh = true;
