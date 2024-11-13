@@ -16,6 +16,7 @@
   "author": "thenku",
   "license": "ISC",
   "dependencies": {
+    "authenticator": "^1.1.5",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",

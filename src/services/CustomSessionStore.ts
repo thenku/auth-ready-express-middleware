@@ -75,6 +75,8 @@ class CustomSessionStore {
         if(sid){
             const session = this.get(sid);
             if(session){
+                req.session = this.get(sid) as any;
+                console.log("Refreshing Session: ", req.session);
                 this.updateCookie(req, res, sid);
             }
         }
