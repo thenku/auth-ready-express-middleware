@@ -2,8 +2,9 @@ import {Request, Response, NextFunction} from 'express';
 import KeyGen from '../util/KeyGen';
 
 export type iSessionData =  {
-    uid?:number;
     exp:number;
+    uid?:string;
+    ip?:string;
 };
 
 class CustomSessionStore {
@@ -52,7 +53,7 @@ class CustomSessionStore {
         }
         return session;
     }
-    set(sid: string, session:Record<string, any>) {
+    set(sid: string, session:Partial<iSessionData>) {
         this.sessions[sid] = {...session, exp: Date.now() + this.maxAge};
         return this.sessions[sid];
     }

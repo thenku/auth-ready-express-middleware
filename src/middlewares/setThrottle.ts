@@ -4,7 +4,7 @@ import mkErrorResponse from "./mkResponse";
 function getUnixSecs(){
     return Math.floor(Date.now() / 1000);
 }
-
+// The problem with this is that ips are not unique. You can have multiple users behind the same ip address.
 export default function setThrottle(router: Router, maxRequestsPerIP = 100, secondsBeforeReset = 30){
     //can be used independently on multiple routers
     const ip_table:{[ipAddr in string]:{remaining:number, startSecs: number}} = {};

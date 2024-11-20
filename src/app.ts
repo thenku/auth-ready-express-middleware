@@ -3,7 +3,6 @@ import express from 'express';
 
 
 import { setMyAuth } from './routes/routes';
-
 const app = express();
 
 setMyAuth(app, true, "privateOnly");

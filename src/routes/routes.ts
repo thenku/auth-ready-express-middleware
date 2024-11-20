@@ -5,7 +5,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import CustomSessionStore from '../services/CustomSessionStore';
-import { setMyAuthRoutes } from './privateRoutes';
+import { setMyPrivateRoutes as setMyPrivateRoutes } from './privateRoutes';
 
 
 const publicFolder = path.resolve(__dirname, '../../public');
@@ -67,7 +67,7 @@ export function setMyAuth(app: Router, showTestPages = false, sessionRoutes: "al
 
         // console.log("SessionsStore: ", JSON.stringify(sessionStore).length);
 
-        setMyAuthRoutes(router);
+        setMyPrivateRoutes(router);
         next();
     });
 
