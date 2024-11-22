@@ -30,6 +30,7 @@ export function setMyPrivateRoutes(router: Router) {
     router.use(express.urlencoded({limit:10240})); // limit the body size to 10kb
 
     router.use(async (req, res, next) => {
+        //session must already exist
         //logout if the session ip does not match the current ip
         const session = req.session as any;
         if(session && session.ip && session.ip !== req.ip){
@@ -52,7 +53,6 @@ export function setMyPrivateRoutes(router: Router) {
              return;
          }
          console.log("Reset: ", cleanBody);
-        
     });
     router.post('/user/register', async (req:Request, res:Response) => {
         const cleanBody = FormInputModifier.cleanBody(req.body);

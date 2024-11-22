@@ -45,7 +45,7 @@ export function setMyAuth(app: Router, showTestPages = false, sessionRoutes: "al
     
     let mustRefresh = true;
     if(sessionRoutes === "all"){
-        mustRefresh = false;
+        mustRefresh = false; // why refresh the session if the user is not logged in
         app.use(parseMeCookie, (req, res, next) => {
             sessionStore.refreshSession(req, res);
             next();
@@ -57,15 +57,6 @@ export function setMyAuth(app: Router, showTestPages = false, sessionRoutes: "al
         if(mustRefresh){
             sessionStore.refreshSession(req, res);
         }
-
-        if(req.sessionID){
-        }else{
-            // console.log("NO SESSION ID: ", req.sessionID);
-            
-        }
-        // console.log("Session ID: ", req.sessionID);
-
-        // console.log("SessionsStore: ", JSON.stringify(sessionStore).length);
 
         setMyPrivateRoutes(router);
         next();
