@@ -11,7 +11,6 @@ This document outlines the user stories for implementing authentication middlewa
 
 ## User Stories
 
-
 ### 12. Store Users in Memory
 - **As a** system administrator
 - **I want** to store user data in memory or override functions at initialization
@@ -30,8 +29,7 @@ This document outlines the user stories for implementing authentication middlewa
 - **So that** my session remains secure
 - **Estimated Time:** 4 hours
 
-
-### 1. User Registration
+### 1. User Registration (Steps: [third-party-email-verification OAUTH2 / person authentication (admin adds person) / enter email], [pay, verify payer], pw generated, open email, [reply to email], first-login, store in pw manager, setup authenticator, create profile, [hide: confirm phone, confirm bank, credit-card, ])
 - **As a** new user
 - **I want** to register an account
 - **So that** I can access the application
@@ -67,13 +65,13 @@ This document outlines the user stories for implementing authentication middlewa
 - **So that** my account is more secure
 - **Estimated Time:** 8 hours
 
-### 5. Password/Account Reset [use two MFAs to recover the other eg.password = authenticator + email, authenticator = password + email; payment can also be a nice verifier. Also a reset key can be provided at first activation. Recommend using password managers. ]
+### 5. Account Reset Request (Access lost / compromised) For ease and security I'd assume a complete reset. Pay Fee + Verify Payer + Show ID of contact person + compare personal-authorized-information for verification (eg. CEO/Admin approval (email ), ip-whitelist, birthdate, password, email, phone, sms, authenticator, DNS Verification) Also a reset key can be provided at first activation. Security recommendations must be used eg. password managers + locking, safe email, mobile locks, LAN security, App security.
 - **As a** registered user
 - **I want** to reset my password if I forget it
 - **So that** I can regain access to my account
 - **Estimated Time:** 4 hours
 
-### 10. Instead of CAPTCHA in Registration use MFA, Loggin & Brute Force protection, honeypot,CSRF
+### 10. Instead of CAPTCHA in Registration use MFA, Loggin & Brute Force protection, honeypot, CSRF (ask for permission to submit = [session + timeout + csrf])
 - **As a** new user
 - **I want** to complete a Google RECAPTCHA during registration
 - **So that** the system can verify that I am not a bot
