@@ -59,7 +59,7 @@ This document outlines the user stories for implementing authentication middlewa
 - **So that** I can enhance security by detecting suspicious logins
 - **Estimated Time:** 5 hours
 
-### 4. Email Multi-Factor Authentication (MFA) [preventing mail overload, log suspicious ips, timeout-brute, honeypot]
+### 4. Email Multi-Factor Authentication (MFA) [preventing mail overload, log suspicious ips, timeout-brute, honeypot, best honeypot is authentication]
 - **As a** registered user
 - **I want** to use email MFA during login
 - **So that** my account is more secure

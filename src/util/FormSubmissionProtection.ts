@@ -1,5 +1,4 @@
 
-
 class FormSubmissionProtection {
     //I'd rather authenticate the user through an app before sending any emails
 
