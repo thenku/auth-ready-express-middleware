@@ -11,7 +11,8 @@
   "scripts": {
     "start": "ts-node src/app.ts",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prestart": "rm ./node_modules/test-npm-module && ln --symbolic /home/henk/source/test-npm-module ./node_modules/test-npm-module"
   },
   "author": "thenku",
   "license": "ISC",

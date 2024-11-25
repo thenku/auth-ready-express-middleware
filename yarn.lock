@@ -1194,6 +1194,9 @@ tar@^6.1.11:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
+"test-npm-module@file:../test-npm-module":
+  version "1.0.0"
+
 thirty-two@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/thirty-two/-/thirty-two-0.0.2.tgz#4253e29d8cb058f0480267c5698c0e4927e54b6a"

@@ -1,5 +1,8 @@
 import {Request, Response, NextFunction} from 'express';
 import KeyGen from '../util/KeyGen';
+import {printMsg} from 'test-npm-module';
+
+printMsg('CustomSessionStore.ts');
 
 export type iSessionData =  {
     exp:number;
