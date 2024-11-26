@@ -2,12 +2,23 @@
 ## Almost production-ready middleware for scalable low-dependency authentication and session management
 ### Just add your own storage mechanisms
 
-This document outlines the user stories for implementing authentication middleware in an ExpressJS application. The focus is on session-based authentication without using JSON Web Tokens (JWT). We are using typescript language for our source code. You can implement your own getUser/setUser functions and DB queries. Third party authenticators are excluded so they can't tamper with your sessions.
+This document outlines the user stories for implementing authentication middleware in an ExpressJS application. The focus is on session-based authentication without using JSON Web Tokens (JWT). We are using typescript language for our source code. You can implement your own getUser/setUser functions and DB queries. Third party authenticators are excluded except for email verification so they can't tamper with your sessions.
 
 - An authenticator can either be a master or an authorized slave.
 - Authorized slaves can validate tokens/sessions. If a user is authenticated they exchange and recreate the session with existing parameters. An API-key, user-key and maybe ip-tables are used in addition to sessionids in order to load-balance effectively.
 - Sometimes registrations are only allowed if admin approves them.
 - Sometimes users can sign in using an API-Key
+- RBAC Groups per endpoint
+    - Admin
+    - Owner
+    - Manager
+    - System
+    - Contributor
+    - Reader
+    - Private
+        - Controller
+        - Processor
+        - Subject
 
 ## User Stories
 

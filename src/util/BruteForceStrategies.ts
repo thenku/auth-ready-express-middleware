@@ -12,6 +12,7 @@ class BruteForceStrategiesClass {
     private logins:Record<string, number> = {};
     private confirms:Record<string, number> = {};
     private resets:Record<string, number> = {};
+    
     private failedLogins:Record<string, {start:number, nrFails:number}> = {};
 
     private async waitForMs(ms:number){

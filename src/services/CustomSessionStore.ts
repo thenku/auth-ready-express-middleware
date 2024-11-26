@@ -7,6 +7,7 @@ printMsg('CustomSessionStore.ts');
 export type iSessionData =  {
     exp:number;
     uid?:string;
+    gid?:string;
     ip?:string;
 };
 
@@ -71,7 +72,7 @@ class CustomSessionStore {
             maxAge:this.maxAge,
             sameSite: true,
             // expires: new Date(Date.now() + maxAge),
-            secure: true // Set to true if using HTTPS at browser level
+            secure: true // Set to true if using HTTPS at browser level or localhost
         });
     }
     refreshSession = (req:Request, res:Response) => {

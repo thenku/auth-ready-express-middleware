@@ -1,4 +1,3 @@
-
 class FormSubmissionProtection {
     //I'd rather authenticate the user through an app before sending any emails
 
@@ -21,5 +20,4 @@ class FormSubmissionProtection {
     //a random field can be used to detect human behavior
 
     //when a field is clicked on
-
 }
